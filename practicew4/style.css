@@ -1,0 +1,88 @@
+/* 移除預設間距，尺寸包含 padding 與 border。 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 800px;
+  font-family: Arial, "Microsoft JhengHei", sans-serif;
+}
+
+.page {
+  width: 800px;
+  margin: 0 auto;
+  /* 固定 banner 不佔文件空間，因此預留 100px。 */
+  padding-top: 100px;
+}
+
+.banner {
+  position: fixed;
+  top: 0;
+  left: max(0px, calc((100% - 800px) / 2));
+  z-index: 10;
+  width: 800px;
+  height: 100px;
+  background-color: rgba(210, 180, 140, 0.7);
+  text-align: left;
+}
+
+.nav {
+  position: fixed;
+  top: 100px;
+  left: max(0px, calc((100% - 800px) / 2));
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100px;
+  background-color: lightgray;
+}
+
+.nav a {
+  display: block;
+  width: 100%;
+  line-height: 40px;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+}
+
+.nav a:hover,
+.nav a:focus-visible {
+  background-color: pink;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 600px 100px;
+  /* 預留固定 nav 的 100px，避免與 content 重疊。 */
+  margin-left: 100px;
+  align-items: start;
+}
+
+.content {
+  width: 600px;
+}
+
+.scene {
+  width: 600px;
+  height: 100vh;
+  /* 錨點定位時，讓 Scene 標題停在 banner 下方。 */
+  scroll-margin-top: 100px;
+}
+
+.supporting {
+  width: 100px;
+  height: 150px;
+  background-color: pink;
+  text-align: left;
+}
+
+.footer {
+  width: 800px;
+  height: 50px;
+  background-color: gray;
+  text-align: left;
+}
