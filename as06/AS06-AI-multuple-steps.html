@@ -3,29 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>全頁滾動示範</title>
+  <title>全螢幕分頁捲動</title>
 
   <style>
-    /* ===== 基本重置：移除預設邊距 ===== */
+    /* ===== 基本重置 ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    body {
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    /* 關閉邊緣回彈與下拉重新整理，避免干擾 JS 控制的捲動 */
+    html, body {
+      overscroll-behavior: none;
     }
 
-    /* ===== 每一格區塊：高度 100vh（整個視窗高度），內容置中 ===== */
-    .section {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    body {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
       color: #fff;
+    }
+
+    /* ===== 每一個區塊：高度 100vh，內容置中 ===== */
+    .section {
+      height: 100vh;              /* 高度剛好等於視窗高度 */
+      display: flex;              /* 用 flex 讓文字上下左右置中 */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       text-align: center;
+      padding: 0 20px;
     }
 
     .section h1 {
@@ -38,22 +44,64 @@
       opacity: 0.85;
     }
 
-    /* ===== 五個區塊各自使用不同的背景色 ===== */
-    #sec1 { background: #e74c3c; } /* 紅 */
-    #sec2 { background: #f39c12; height: 200vh; } /* 橘：高度改為 200vh */
-    #sec3 { background: #27ae60; } /* 綠 */
-    #sec4 { background: #2980b9; } /* 藍 */
-    #sec5 { background: #8e44ad; } /* 紫 */
+    /* ===== 第 2 格：高度改為 200vh，內容由上而下排列 ===== */
+    #s2 {
+      height: 200vh;
+      justify-content: flex-start;
+    }
+
+    /* 第 2 格裡的上、下兩半，各佔 100vh，文字各自置中 */
+    .half {
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* ===== 五個不同顏色的色塊 ===== */
+    #s1 { background: #e74c3c; }  /* 紅 */
+    #s2 { background: linear-gradient(#f39c12, #d35400); }  /* 橘（漸層，方便看出正在捲動） */
+    #s3 { background: #27ae60; }  /* 綠 */
+    #s4 { background: #2980b9; }  /* 藍 */
+    #s5 { background: #8e44ad; }  /* 紫 */
   </style>
 </head>
 <body>
 
-  <!-- ===== 五個區塊（第 2 個為 200vh，其餘為 100vh） ===== -->
-  <div class="section" id="sec1"><h1>第 1 區</h1><p>往下滾動，快速切換到下一區</p></div>
-  <div class="section" id="sec2"><h1>第 2 區（200vh）</h1><p>這一區內是一般的平滑捲動</p></div>
-  <div class="section" id="sec3"><h1>第 3 區</h1><p>從這裡往下，是一般滾動</p></div>
-  <div class="section" id="sec4"><h1>第 4 區</h1><p>從這裡往上，是一般滾動</p></div>
-  <div class="section" id="sec5"><h1>第 5 區</h1><p>往上滾動，回到上一區</p></div>
+  <!-- 5 個 100vh 的 div -->
+  <div class="section" id="s1">
+    <h1>第 1 格</h1>
+    <p>往下滾／滑：快速跳到第 2 格</p>
+  </div>
+
+  <div class="section" id="s2">
+    <div class="half">
+      <h1>第 2 格（上半）</h1>
+      <p>高度 200vh，這一格內是正常的平滑捲動</p>
+    </div>
+    <div class="half">
+      <h1>第 2 格（下半）</h1>
+      <p>捲到底後再往下：快速跳到第 3 格；回到頂端再往上：快速跳回第 1 格</p>
+    </div>
+  </div>
+
+  <div class="section" id="s3">
+    <h1>第 3 格</h1>
+    <p>往下：進入「正常捲動」區（第 3、4 格之間）</p>
+  </div>
+
+  <div class="section" id="s4">
+    <h1>第 4 格</h1>
+    <p>往上：回到第 3 格也是正常捲動；往下：快速跳到第 5 格</p>
+  </div>
+
+  <div class="section" id="s5">
+    <h1>第 5 格</h1>
+    <p>往上：快速跳回第 4 格</p>
+  </div>
 
   <!-- 載入 jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -61,184 +109,292 @@
   <script>
     $(function () {
 
-      /* ================= 可調整的參數 ================= */
-      var DURATION     = 500;   // 整頁切換的動畫時間（毫秒）
-      var TOLERANCE    = 2;     // 位置判斷的容許誤差（像素）
-      var WHEEL_SPEED  = 1.275; // 自由滾動區：滾輪距離倍率（越大滑越遠）
-      var EASE         = 0.22;  // 自由滾動區：緩動係數（0~1，越大追得越快）
-      var GESTURE_GAP  = 200;   // 判定「新的一次滾動」所需的滾輪停頓時間（毫秒）
+      /* =====================================================
+       * 設定參數
+       * ===================================================== */
+      var DURATION    = 600;  // 「快速跳轉」動畫時間（毫秒）
+      var QUIET_GAP   = 120;  // 滾輪事件中斷超過這段時間，視為「新的一次手勢」（毫秒）
+      var LOCK_MAX    = 500;  // 跳轉後鎖定超過這段時間，只要滾動力道夠大（≥ BIG_DELTA）就視為新手勢
+      var BIG_DELTA   = 40;   // 上面所說的「力道夠大」門檻（像素）
+      var FREE_EASE   = 0.3;  // 正常捲動區的平滑係數（0~1）：越大越跟手，越小越滑順
+      var FREE_STEP   = 150;  // 正常捲動區內，單次滾輪事件最多移動的像素（避免用力一滑速度暴衝）
+      var EDGE_HOLD   = 250;  // 碰到第 3、4 格邊界後，至少等這段時間才可能解鎖（毫秒）
+      var TOUCH_MIN   = 10;   // 手機：手指移動超過這個像素就立即切換頁面（數值小 = 很靈敏）
+      var EPS         = 2;    // 位置判斷的容許誤差（像素）
 
-      /* ================= 狀態變數 ================= */
-      var isAnimating  = false; // 是否正在做整頁切換動畫
-      var lastWheelAt  = 0;      // 上一次收到滾輪事件的時間
-      var freeY        = 0;      // 自由滾動區：目前（平滑中的）位置
-      var freeTarget   = 0;      // 自由滾動區：目標位置
-      var freeRunning  = false;  // 自由滾動的平滑動畫是否在執行
-      var rafId        = null;   // requestAnimationFrame 的編號
+      /* =====================================================
+       * 狀態變數
+       * ===================================================== */
+      var $page       = $('html, body');
+      var animating   = false;  // 快速跳轉動畫進行中
+      var animTimer   = null;   // 保險計時器：確保 animating 一定會被解除
+      var locked      = false;  // 鎖定：跳轉或碰到邊界後，等「新的一次手勢」才解鎖（避免觸控板慣性連跳）
+      var lockedSince = 0;      // 開始鎖定（或動畫結束）的時間
+      var allowForce  = true;   // 鎖定期間，是否允許用「鎖定很久後力道夠大」判定為新手勢（只用在跳轉後）
+      var lockDir     = 0;      // 鎖定當下的滾動方向（1 = 往下，-1 = 往上）
+      var sawDecline  = false;  // 鎖定期間是否已看到力道變小（代表慣性滑動已開始減速）
+      var lastWheel   = 0;      // 上一次收到滾輪事件的時間
+      var lastAbs     = 0;      // 上一次滾輪事件的力道（絕對值）
+      var freeTarget  = null;   // 正常捲動區內累積的目標位置（避免用過時的 scrollTop 計算而衝過頭）
+      var freeTimer   = null;   // 閒置一段時間後，清掉 freeTarget
+      var freeCurrent = null;   // 正常捲動區目前「實際顯示」的位置（會以緩動追向 freeTarget）
+      var freeRaf     = null;   // requestAnimationFrame 的編號
+      var edgeLock    = false;  // 目前的鎖定是否為「碰到邊界」造成的
 
-      /**
-       * 取得版面的關鍵位置（以 h = 視窗高度為單位）
-       * 區塊位置：第1區 0~h、第2區 h~3h（200vh）、第3區 3h~4h、第4區 4h~5h、第5區 5h~6h
-       * 因為頁面最多只能捲到 5h（視窗頂端），所以「停靠點」為 0、h、2h、3h、4h、5h
-       */
-      function getLayout() {
-        var h = $(window).height();
+      /* =====================================================
+       * 工具函式
+       * ===================================================== */
 
-        return {
-          // 所有「整頁切換」可停靠的位置
-          stops: [0, h, 2 * h, 3 * h, 4 * h, 5 * h],
-
-          // 自由（一般）滾動區：
-          //  區域 A：第 2 區內部（h ~ 2h）
-          //  區域 B：第 3、4 區之間（3h ~ 4h）
-          // up / down 是「在邊界再繼續滾」時要整頁切換到的位置
-          zones: [
-            { min: h,     max: 2 * h, up: 0,     down: 3 * h },
-            { min: 3 * h, max: 4 * h, up: 2 * h, down: 5 * h }
-          ]
-        };
+      /* 一個區塊的高度（= 100vh 的實際像素） */
+      function H() {
+        return $('#s1').outerHeight();
       }
 
-      /**
-       * 整頁切換：平滑捲動到指定的像素位置
-       * @param {number} pos 要捲到的位置（像素）
-       */
-      function goToPosition(pos) {
-        stopFreeScroll();             // 先停止自由滾動的平滑動畫
-        isAnimating = true;
+      /* 「正常捲動區」清單，單位是「一個視窗高度（100vh）」的倍數，指的是 scrollTop 的範圍：
+         - [1, 2]：第 2 格（200vh）頂端 ～ 第 2 格底端
+                   （scrollTop = 2 倍時，視窗底端剛好就是第 2 格的底端）
+         - [3, 4]：第 3 格頂端 ～ 第 4 格頂端
+         版面位置：第 1 格 0~1、第 2 格 1~3、第 3 格 3~4、第 4 格 4~5、第 5 格 5~6 */
+      var FREE_ZONES = [[1, 2], [3, 4]];
+      var LAST_STOP  = 5;   // 最後一個停靠位置（第 5 格頂端 = 5 倍視窗高度）
 
-        $('html, body').stop().animate(
-          { scrollTop: pos },
-          DURATION,
-          'swing',
-          function () {
-            isAnimating = false;      // 動畫結束，解除鎖定
-          }
-        );
-      }
-
-      /** 停止自由滾動區的平滑動畫 */
-      function stopFreeScroll() {
-        freeRunning = false;
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
+      /* 找出「目前位置 + 滾動方向」所在的正常捲動區，回傳 [下邊界, 上邊界]（像素），不在任何正常捲動區則回傳 null
+         - 往下：區頂端（含）～ 區底端（不含）
+         - 往上：區底端（含）～ 區頂端（不含） */
+      function findZone(st, down) {
+        var h = H();
+        for (var i = 0; i < FREE_ZONES.length; i++) {
+          var a = FREE_ZONES[i][0] * h, b = FREE_ZONES[i][1] * h;
+          var hit = down
+            ? (st >= a - EPS && st <  b - EPS)
+            : (st >  a + EPS && st <= b + EPS);
+          if (hit) { return [a, b]; }
         }
+        return null;
       }
 
-      /**
-       * 自由滾動區的平滑動畫迴圈
-       * 每一幀都讓目前位置「追」向目標位置一小段距離，
-       * 就會產生類似慣性、快速滑動的順暢效果。
-       */
-      function freeLoop() {
-        var diff = freeTarget - freeY;
+      /* 限制數值範圍 */
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
 
-        if (Math.abs(diff) < 0.5) {
-          // 已經非常接近目標：直接貼齊並結束動畫
-          freeY = freeTarget;
-          window.scrollTo(0, freeY);
-          freeRunning = false;
-          rafId = null;
+      /* 正常捲動區的平滑動畫：每一個畫面影格，讓實際位置往目標位置靠近一部分。
+         比起每次滾輪事件都重新啟動 jQuery 動畫，這樣不會斷斷續續，觸控板的細小滾動也很順 */
+      function freeTick() {
+        var diff = freeTarget - freeCurrent;
+        if (Math.abs(diff) < 0.5) {            // 已經很接近：直接到位並結束
+          freeCurrent = freeTarget;
+          window.scrollTo(0, freeCurrent);
+          freeRaf = null;
           return;
         }
-
-        freeY += diff * EASE;         // 每幀前進剩餘距離的一部分
-        window.scrollTo(0, freeY);
-        rafId = requestAnimationFrame(freeLoop);
+        freeCurrent += diff * FREE_EASE;
+        window.scrollTo(0, freeCurrent);
+        freeRaf = requestAnimationFrame(freeTick);
       }
 
-      /**
-       * 滾輪事件處理
-       * 使用原生 addEventListener 並設定 passive:false，
-       * 才能在需要時呼叫 preventDefault() 阻止瀏覽器預設的滾動。
-       */
-      document.addEventListener('wheel', function (e) {
+      /* 開始（或繼續）正常捲動區的平滑動畫 */
+      function startFree() {
+        if (freeCurrent === null) { freeCurrent = $(window).scrollTop(); }
+        if (!freeRaf) { freeRaf = requestAnimationFrame(freeTick); }
+      }
 
-        var now = Date.now();
-        // 與上一次滾輪事件的間隔：間隔夠長，代表使用者開始了「新的一次滾動」
-        var isNewGesture = (now - lastWheelAt) > GESTURE_GAP;
-        lastWheelAt = now;
+      /* 取消正常捲動區的平滑動畫與相關狀態 */
+      function cancelFree() {
+        if (freeRaf) { cancelAnimationFrame(freeRaf); freeRaf = null; }
+        freeCurrent = null;
+        freeTarget  = null;
+      }
 
-        // 整頁切換動畫進行中：阻止預設滾動並忽略這次滾輪
-        if (isAnimating) {
-          e.preventDefault();
-          return;
+      /* 目前位置在指定方向上，是否屬於「正常捲動區」 */
+      function inFreeZone(st, down) {
+        return findZone(st, down) !== null;
+      }
+
+      /* 結束跳轉狀態（動畫完成、被中斷、或保險計時器到時都會呼叫） */
+      function finishAnim() {
+        animating   = false;
+        lockedSince = Date.now();
+        clearTimeout(animTimer);
+      }
+
+      /* 停止目前的動畫；一定同時解除 animating，避免卡死而完全無法捲動 */
+      function stopAnim() {
+        $page.stop(true);
+        animating = false;
+        clearTimeout(animTimer);
+      }
+
+      /* 快速跳轉到指定位置（動畫期間鎖定） */
+      function goTo(targetTop, down) {
+        stopAnim();
+        animating  = true;
+        locked     = true;       // 動畫結束後仍需等「新手勢」才解鎖
+        allowForce = true;
+        lockDir    = down ? 1 : -1;
+        sawDecline = false;
+        edgeLock   = false;
+        cancelFree();
+        $page.animate({ scrollTop: targetTop }, DURATION, finishAnim);
+        // 保險：就算動畫的完成回呼沒被呼叫，也一定會解除 animating
+        animTimer = setTimeout(finishAnim, DURATION + 150);
+      }
+
+      /* 根據目前位置與方向，跳到上一格／下一格 */
+      function snapStep(st, down) {
+        var h = H();
+        var index  = Math.round(st / h);                       // 目前在第幾格（0~4）
+        var target = clamp(index + (down ? 1 : -1), 0, LAST_STOP);   // 目標停靠位置
+        if (target !== index) {
+          goTo(target * h, down);
+        }
+      }
+
+      /* =====================================================
+       * 滑鼠滾輪／觸控板
+       * ===================================================== */
+      function onWheel(e) {
+        if (e.ctrlKey) { return; }                 // Ctrl + 滾輪 = 縮放，不處理
+
+        var dy = e.deltaY;
+        if (e.deltaMode === 1) { dy *= 40; }       // 以「行」為單位時，換算成像素
+        if (dy === 0) { return; }
+
+        e.preventDefault();                        // 所有捲動都由程式控制
+
+        var now     = Date.now();
+        var gap     = now - lastWheel;             // 與上一個滾輪事件的間隔
+        var abs     = Math.abs(dy);
+        var prevAbs = lastAbs;
+        lastWheel   = now;
+        lastAbs     = abs;
+        var down    = dy > 0;
+
+        /* 鎖定期間記錄「力道是否已經開始變小」：
+           觸控板慣性滑動的力道會逐漸減弱，看到減弱之後再變強，才可能是新的一次滑動 */
+        if (locked && abs < prevAbs) { sawDecline = true; }
+
+        /* 動畫進行中：直接忽略 */
+        if (animating) { return; }
+
+        /* 鎖定中：判斷這個事件是不是「新的一次手勢」。
+           碰到第 3、4 格邊界或剛跳轉完時，觸控板的慣性滑動還會持續一陣子，
+           這些慣性事件不能再觸發換頁。以下任一條件成立，才視為使用者又開始新的滑動：
+             (a) 事件中斷了一小段時間（手指離開、慣性結束）
+             (b) 已經看到力道減弱，之後力道又明顯變強（慣性中又滑了一次）
+             (c) 方向相反（慣性不會反向）
+             (d) 跳轉後鎖定一段時間，出現力道夠大的滾動（只用在跳轉後） */
+        if (locked) {
+          var dir        = down ? 1 : -1;
+          // 碰到邊界的鎖定：先「冷卻」一小段時間，期間只有反方向才能解鎖，
+          // 這樣用力一滑造成的慣性（包含中途的短暫停頓）不會直接換頁
+          var cooling    = edgeLock && (now - lockedSince) < EDGE_HOLD;
+          var newByGap   = !cooling && gap >= QUIET_GAP;
+          var newByAccel = !cooling && sawDecline && abs > prevAbs * 1.3 && (abs - prevAbs) >= (edgeLock ? 12 : 6);
+          var newByRev   = dir !== lockDir;
+          var newByForce = allowForce && (now - lockedSince) >= LOCK_MAX && abs >= BIG_DELTA;
+          if (!(newByGap || newByAccel || newByRev || newByForce)) { return; }
+          locked = false;
         }
 
-        var layout = getLayout();
-        var y      = $(window).scrollTop();   // 目前捲動位置
-        var dir    = e.deltaY > 0 ? 1 : -1;   // 方向：往下 = 1，往上 = -1
+        // 正常捲動區內以 freeTarget 為準，否則讀實際的 scrollTop
+        var st = (freeTarget !== null) ? freeTarget : $(window).scrollTop();
 
-        // 找出目前位置是否落在某個自由滾動區內
-        var zone = null;
-        for (var i = 0; i < layout.zones.length; i++) {
-          var z = layout.zones[i];
-          if (y >= z.min - TOLERANCE && y <= z.max + TOLERANCE) {
-            zone = z;
-            break;
-          }
-        }
-
-        // ---------- 情況 A：位於自由滾動區（一般平滑捲動） ----------
+        /* ---------- A：正常捲動區（第 3、4 格之間） ---------- */
+        var zone = findZone(st, down);      // 目前所在的正常捲動區（沒有則為 null）
         if (zone) {
+          // 用「累積目標位置」計算，並夾在邊界內，所以不可能衝過頭
+          // 單次移動量設上限，用力一滑也不會一下子衝到底
+          var step = clamp(dy, -FREE_STEP, FREE_STEP);
+          var t = clamp(st + step, zone[0], zone[1]);
+          freeTarget = t;
+          startFree();                         // 以 requestAnimationFrame 平滑地追向目標位置
 
-          e.preventDefault(); // 由程式接手，才能做平滑效果並限制範圍
-
-          // 在區域頂端又往上滾：必須是「新的一次滾動」才整頁切換，
-          // 避免快速滑動時慣性一路衝過邊界
-          if (y <= zone.min + TOLERANCE && dir < 0) {
-            if (isNewGesture) { goToPosition(zone.up); }
-            return;
+          // 碰到邊界：鎖定，必須有新的手勢才會繼續（切到第 5 格或第 2 格）
+          if (t === zone[0] || t === zone[1]) {
+            locked      = true;
+            edgeLock    = true;
+            lockedSince = now;
+            allowForce  = false;   // 邊界鎖定：慣性可能很大，不能用「力道夠大」來解鎖
+            lockDir     = down ? 1 : -1;
+            sawDecline  = false;
           }
 
-          // 在區域底端又往下滾：同理，必須是新的一次滾動才整頁切換
-          if (y >= zone.max - TOLERANCE && dir > 0) {
-            if (isNewGesture) { goToPosition(zone.down); }
-            return;
-          }
-
-          // 一般滾動：若平滑動畫沒有在跑，先把位置同步為目前實際位置
-          if (!freeRunning) {
-            freeY      = y;
-            freeTarget = y;
-          }
-
-          // 依滾輪量累加目標位置，並限制在該自由滾動區範圍內
-          freeTarget += e.deltaY * WHEEL_SPEED;
-          freeTarget  = Math.max(zone.min, Math.min(zone.max, freeTarget));
-
-          // 啟動平滑動畫迴圈（若已在跑則不重複啟動）
-          if (!freeRunning) {
-            freeRunning = true;
-            rafId = requestAnimationFrame(freeLoop);
-          }
+          // 閒置一段時間後清除目標位置（此時平滑動畫早已到位）
+          clearTimeout(freeTimer);
+          freeTimer = setTimeout(cancelFree, 400);
           return;
         }
 
-        // ---------- 情況 B：其他位置（整頁切換） ----------
-        e.preventDefault();                       // 阻止一般滾動
+        /* ---------- B：其他情況，一次只切換一頁 ---------- */
+        snapStep($(window).scrollTop(), down);
+      }
 
-        var target = null;
-        var stops  = layout.stops;
+      /* 必須用原生 addEventListener 並設定 passive:false，
+         否則 preventDefault() 會被瀏覽器忽略 */
+      window.addEventListener('wheel', onWheel, { passive: false });
 
-        if (dir > 0) {
-          // 往下：找出比目前位置大的最近停靠點
-          for (var j = 0; j < stops.length; j++) {
-            if (stops[j] > y + TOLERANCE) { target = stops[j]; break; }
-          }
-        } else {
-          // 往上：找出比目前位置小的最近停靠點
-          for (var k = stops.length - 1; k >= 0; k--) {
-            if (stops[k] < y - TOLERANCE) { target = stops[k]; break; }
-          }
-        }
+      /* =====================================================
+       * 手機觸控（行為與滑鼠滾動一致）
+       * ===================================================== */
+      var touchStartY  = 0;      // 手指按下時的 Y 座標
+      var touchStartSt = 0;      // 手指按下時的 scrollTop
+      var touching     = false;  // 是否正在追蹤一次觸控
+      var touchHandled = false;  // 這次觸控是否已經切換過頁面（一次手勢只切一頁）
 
-        if (target !== null) {
-          goToPosition(target);
-        }
-
+      document.addEventListener('touchstart', function (e) {
+        touching     = true;
+        touchHandled = false;
+        touchStartY  = e.touches[0].clientY;
+        cancelFree();                                    // 手指按下時停止觸控板的平滑動畫
+        touchStartSt = $(window).scrollTop();
+        if (!animating) { $page.stop(true); }
       }, { passive: false });
+
+      document.addEventListener('touchmove', function (e) {
+        e.preventDefault();                              // 取消瀏覽器預設捲動
+        if (!touching || animating || touchHandled) { return; }
+
+        var dy   = touchStartY - e.touches[0].clientY;   // 正值 = 手指往上滑 = 內容往下
+        var down = dy > 0;
+
+        var zone = findZone(touchStartSt, down);
+        if (zone) {
+          // 正常捲動區：頁面跟著手指移動，並夾在邊界內
+          $(window).scrollTop(clamp(touchStartSt + dy, zone[0], zone[1]));
+        } else if (Math.abs(dy) >= TOUCH_MIN) {
+          // 其他區域：滑動夠長就立即切換一頁，同一次手勢不再切換
+          touchHandled = true;
+          snapStep(touchStartSt, down);
+        }
+      }, { passive: false });
+
+      /* 手指離開：如果滑動很短、touchmove 還沒來得及觸發切換，在這裡補上（任何一次滑動都會切換） */
+      document.addEventListener('touchend', function (e) {
+        if (touching && !touchHandled && !animating && e.changedTouches.length) {
+          var dy   = touchStartY - e.changedTouches[0].clientY;
+          var down = dy > 0;
+          if (Math.abs(dy) >= 5 && !inFreeZone(touchStartSt, down)) {
+            touchHandled = true;
+            snapStep(touchStartSt, down);
+          }
+        }
+        touching = false;
+      }, { passive: true });
+
+      /* 觸控被系統中斷，結束追蹤 */
+      document.addEventListener('touchcancel', function () { touching = false; }, { passive: true });
+
+      /* =====================================================
+       * 視窗大小改變：重新對齊到最近的整格位置
+       * ===================================================== */
+      $(window).on('resize', function () {
+        if (animating) { return; }          // 動畫中不處理，避免中斷動畫
+        var h = H();
+        var index = Math.round($(window).scrollTop() / h);
+        cancelFree();
+        $page.stop(true).scrollTop(index * h);
+      });
 
     });
   </script>
