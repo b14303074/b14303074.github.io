@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>臉的城市</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 街頭觀察的新聞專題——冷靜、近距離、帶一點幽默，不替任何候選人說話
+   IDEA: 選票與競選看板本身——圈選章的紅圈、號次大字、帆布上的臉
+   PICTURE: 作者自己拍的影片與照片，全幅出血；互動都長在照片上
+   COLOUR and TYPE: 選票白、油墨黑、圈選章紅；Noto Sans TC 900 學看板粗黑體
+   LAYOUT: 全寬色帶交替，夜間照片放黑帶，規則與數據放白帶；最後一屏是 AI 使用聲明 */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#101010);--ink:light-dark(#141414,#ececec);--mute:light-dark(#5d5d5d,#a9a9a9);--line:light-dark(#dcdcdc,#2c2c2c);--red:#d81e1e;--tape:#f2d94e;--night:#0d0d0e;--soft:light-dark(#f3f3f1,#1a1a1a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.75 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;overflow-x:clip}
+h1,h2,h3{font-weight:900;line-height:1.12;text-wrap:balance;margin:0 0 .5em}
+h2{font-size:clamp(30px,4.4vw,48px)}h3{font-size:21px}
+p{margin:0 0 1em}a{color:inherit;text-decoration-color:var(--red);text-underline-offset:3px}
+.band{padding:clamp(48px,7vw,104px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}.prose{max-width:680px}
+.dark{background:var(--night);color:#eee;--mute:#a9a9a9;--line:#2c2c2c}
+.soft{background:var(--soft)}
+.lede{font-size:clamp(18px,2vw,21px);color:var(--mute)}
+.kicker{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--red);margin-bottom:14px}
+.kicker b{display:grid;place-items:center;width:34px;height:34px;border:3px solid var(--red);border-radius:50%;font-size:16px}
+.note{font-size:14px;color:var(--mute)}
+button{font:inherit;cursor:pointer}
+.btn{min-height:44px;padding:8px 18px;border-radius:999px;border:2px solid currentColor;background:transparent;color:inherit;font-weight:700}
+.btn.on{background:var(--red);border-color:var(--red);color:#fff}
+.btn:focus-visible,.hot:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+#bar{position:fixed;top:0;left:0;height:4px;background:var(--red);width:0;z-index:50}
+
+/* hero：滑動逐格影片 */
+#hero{height:320vh;position:relative;background:#000}
+#hero .stick{position:sticky;top:0;height:100vh;overflow:hidden}
+#hero canvas{position:absolute;inset:0;width:100%;height:100%}
+#hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.65))}
+.cap{position:absolute;left:max(5vw,16px);right:max(5vw,16px);bottom:14vh;color:#fff;transition:opacity .35s,transform .35s;opacity:0;transform:translateY(16px)}
+.cap.on{opacity:1;transform:none}
+.cap .big{font-size:clamp(44px,9vw,120px);font-weight:900;line-height:1}
+.cap .mid{font-size:clamp(22px,3.2vw,36px);font-weight:700;max-width:820px;line-height:1.35}
+#title h1{font-size:clamp(56px,11vw,150px);margin:0;letter-spacing:.02em}
+#title .sub{font-size:clamp(17px,2vw,22px);max-width:640px;margin-top:10px}
+.stamp{position:absolute;right:max(5vw,16px);top:9vh;width:clamp(118px,15vw,168px);aspect-ratio:1;border:5px solid var(--red);border-radius:50%;display:grid;place-items:center;text-align:center;color:#fff;background:rgba(216,30,30,.18);transform:rotate(-8deg)}
+.stamp b{display:block;font-size:clamp(34px,5vw,56px);line-height:1;font-weight:900}
+.stamp span{font-size:14px;line-height:1.3}
+.hint{position:absolute;left:50%;bottom:4vh;transform:translateX(-50%);color:#fff;font-size:14px;opacity:.8}
+
+/* 數字 */
+.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;margin-top:36px}
+.num b{display:block;font-size:clamp(38px,5vw,64px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.num b i{font-style:normal;color:var(--red)}
+.num b span{display:inline}
+.num>span{display:block;margin-top:8px;color:var(--mute);font-size:15px}
+@media(max-width:820px){.nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* 時間軸 */
+.tl{margin-top:34px;display:grid;grid-template-columns:5.5em repeat(16,minmax(0,1fr));row-gap:10px;align-items:center}
+.tl .lab{font-weight:700;font-size:15px;white-space:nowrap}
+.tl .seg{height:30px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:13px;display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden}
+.tl .seg.red{background:var(--red);color:#fff}
+.tl .seg.fade{background:linear-gradient(90deg,transparent,var(--mute) 45%);color:var(--bg);justify-content:flex-end}
+@media(max-width:600px){.tl{grid-template-columns:3.6em repeat(16,minmax(0,1fr))}.tl .day:nth-child(even){visibility:hidden}.tl .seg{font-size:0}}
+.tl .day{font-size:13px;text-align:center;color:var(--mute);font-variant-numeric:tabular-nums}
+.tl .day.today{color:var(--red);font-weight:900}
+
+/* scrollytelling */
+.scrolly{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(20px,4vw,56px)}
+.scrolly .fig{position:sticky;top:max(6vh,40px);align-self:start}
+.photo{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:6px;background:#222}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .5s}
+.chip{position:absolute;left:12px;top:12px;background:var(--red);color:#fff;font-weight:700;font-size:14px;padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums}
+.steps .step{min-height:78vh;display:flex;flex-direction:column;justify-content:center;opacity:.35;transition:opacity .3s}
+.steps .step.on{opacity:1}
+.step time{color:var(--red);font-weight:900;font-size:15px}
+.step h3{margin-top:4px}
+@media(max-width:860px){.scrolly{display:block}.scrolly .fig{top:56px;z-index:2}.steps{position:relative;z-index:3}.steps .step{min-height:70vh;justify-content:flex-end;padding-bottom:6vh}.steps .step>div{background:rgba(13,13,14,.92);padding:16px 18px;border-radius:8px}.steps .step{opacity:0}.steps .step.on{opacity:1}}
+
+/* 拆解看板 */
+.duo{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:start;margin-top:30px}
+@media(max-width:860px){.duo{grid-template-columns:minmax(0,1fr)}}
+.hot{position:absolute;border:2px dashed rgba(255,255,255,.9);background:transparent;border-radius:4px;padding:0;transition:background .25s}
+.hot:hover{background:rgba(216,30,30,.18)}
+.hot[data-k=name] .tag,.hot[data-k=no] .tag{top:auto;bottom:-1.6em}
+.hot.taped{background:repeating-linear-gradient(-12deg,var(--tape) 0 14px,#e8cc3c 14px 16px);border:0;box-shadow:0 3px 8px rgba(0,0,0,.35)}
+.hot .tag{pointer-events:none;position:absolute;left:4px;top:-1.6em;font-size:13px;font-weight:700;color:#fff;background:#111;padding:0 6px;border-radius:3px;white-space:nowrap}
+.verdict{font-size:19px;font-weight:900;line-height:1.4;margin:8px 0 4px}
+.verdict.legal{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 8px}
+.chips .btn{min-height:40px;padding:6px 14px;font-size:15px}
+
+/* 找臉 */
+.msg{min-height:6.5em;padding:14px 16px;border-left:4px solid var(--red);background:var(--soft);border-radius:0 8px 8px 0;margin:14px 0}
+.dark .msg{background:#1b1b1b}
+
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+
+
+/* 層級三欄 */
+.lv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,32px);margin-top:30px}
+.lv h3{margin-top:14px}.lv p{font-size:16px}
+@media(max-width:860px){.lv{grid-template-columns:minmax(0,1fr)}}
+/* 一屏段落 */
+.fit{min-height:100vh;min-height:100svh;display:flex;align-items:center;padding-block:clamp(24px,4vh,48px)}
+.fit .wrap{width:100%}
+.fitgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(20px,3.5vw,48px);align-items:center}
+.fit h2{font-size:clamp(26px,3vw,38px)}
+.fit p{font-size:16px;line-height:1.7;margin-bottom:.7em}
+.fitgrid>.photo{width:min(100%,calc((100svh - 64px)*4/3));justify-self:end}
+@media(max-width:860px){.fit{padding-block:14px}.fitgrid{grid-template-columns:minmax(0,1fr);gap:14px}.fitgrid>.photo{order:-1;justify-self:center;width:min(100%,calc(34svh*4/3))}.fit h2{font-size:22px;margin-bottom:.35em}.fit p{font-size:15px;line-height:1.6;margin-bottom:.5em}.fit .kicker{margin-bottom:4px}.fit .kicker b{width:28px;height:28px;font-size:14px}.kinds{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.kind{justify-content:center;min-height:44px;padding:4px}.kind img{display:none}#after .msg{margin:8px 0;padding:10px 12px;font-size:14px}.chips{gap:6px;margin:6px 0}.chips .btn{padding:4px 12px;min-height:40px}.verdict{font-size:17px}}
+/* 紅框 */
+.frames{position:absolute;inset:0;pointer-events:none}
+.frames i{position:absolute;border:3px solid var(--red);border-radius:6px;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 18px rgba(216,30,30,.55);transition:all .5s cubic-bezier(.2,.7,.2,1)}
+/* 看板種類按鈕 */
+.kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
+.kind{display:flex;align-items:center;gap:10px;text-align:left;background:#1b1b1b;color:#eee;border:2px solid #333;border-radius:8px;padding:6px;min-height:48px;font-size:15px;font-weight:700}
+.kind img{width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:4px;flex:none}
+.kind.on,.kind:hover{border-color:var(--red)}
+.kind:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+.msg b{color:#fff}
+#after .msg{min-height:0;font-size:15px;line-height:1.65}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:34px}
+.facts div{border-top:3px solid var(--ink);padding-top:12px}
+.facts b{display:block;font-size:28px;font-weight:900;line-height:1.2;white-space:nowrap}
+@media(max-width:760px){.facts{grid-template-columns:minmax(0,1fr)}}
+.src{font-size:15px;color:var(--mute);padding-left:1.2em}.src li{margin-bottom:6px}
+
+/* AI 聲明 */
+#ai{min-height:100vh;background:var(--night);color:#eee;display:flex;align-items:center;padding:clamp(40px,6vw,80px) max(5vw,16px)}
+#ai .wrap{width:100%}
+#ai h2{font-size:clamp(36px,6vw,72px)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,36px);margin-top:28px}
+.cols h3{color:#fff;border-bottom:3px solid var(--red);padding-bottom:8px}
+.cols ul{margin:0;padding-left:1.1em;color:#cfcfcf;font-size:15.5px;line-height:1.7}
+@media(max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+#ai .sign{margin-top:30px;font-size:14px;color:#9a9a9a;border-top:1px solid #2c2c2c;padding-top:16px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<section id="hero" aria-label="開場">
+  <div class="stick">
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <div class="shade"></div>
+    <div class="stamp" aria-live="polite"><div><span id="cdTop">距離投票</span><b id="cdNum">D-4</b><span>11 月 28 日</span></div></div>
+    <div class="cap" data-a="0" data-b=".28"><div class="big">抬頭。</div></div>
+    <div class="cap" data-a=".28" data-b=".6"><div class="mid">投票前一週，台北街頭。<br>天空還在，只是被切成一條一條的——<br>每一條，都印著一張臉和一個號碼。</div></div>
+    <div class="cap" id="title" data-a=".6" data-b="1.01">
+      <h1>臉的城市</h1>
+      <div class="sub">九合一投票前一週，一支手機在台北街頭拍下的十三個畫面。這是一份關於競選看板的街頭報導：它們掛在哪裡、說了什麼、法律怎麼管，以及投票後它們會去哪裡。</div>
+    </div>
+    <div class="hint">往下捲動，影片會跟著你的手指前進 ↓</div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="prose">
+      <div class="kicker"><b>1</b>規模</div>
+      <h2>一張選票上的名字，先在牆上排隊</h2>
+      <p class="lede">2026 年地方選舉在 11 月 28 日（六）上午 8 點到下午 4 點投票。這次一次選出九類地方公職，從直轄市長一路選到村里長。</p>
+      <p>在台北，市長是 6 人搶 1 席，市議員是 98 人登記、競逐 61 席。本文多數照片拍攝的大安、文山（台北市議員第六選區），候選人名單公告後是 18 人搶 13 席。放大到全國，總共有 19,695 人登記，搶 11,051 個名額——每一位都需要被看見，而最便宜、最直接的「被看見」，就是把臉掛到街上。</p>
+    </div>
+    <div class="nums">
+      <div class="num"><b data-to="6">0</b><span>台北市長參選人（爭 1 席）</span></div>
+      <div class="num"><b><span data-to="98">0</span><i>/</i><span data-to="61">0</span></b><span>台北市議員登記人數／應選席次</span></div>
+      <div class="num"><b><span data-to="18">0</span><i>/</i><span data-to="13">0</span></b><span>大安・文山選區：候選人／席次</span></div>
+      <div class="num"><b data-to="19695" data-comma="1">0</b><span>全國登記參選人數（名額 11,051）</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band soft">
+  <div class="wrap">
+    <div class="prose">
+      <div class="kicker"><b>2</b>時間</div>
+      <h2>看板比選戰更早上街</h2>
+      <p>《公職人員選舉罷免法》第 40 條規定了法定的競選活動期間：直轄市長 15 天、直轄市議員 10 天、村里長 5 天，都從投票日前一天往前算。換算成日曆，市長從 11 月 13 日、議員從 11 月 18 日、里長從 11 月 23 日開始。</p>
+      <p>但看板不受這幾天限制。台北的《競選廣告物管理自治條例》規定，競選廣告物可以從參選人的競選辦事處登記的隔天，一直掛到投票日。每位參選人登記的時間不同，所以街上的看板，往往在法定競選活動開始前就已經掛好了。本文的照片只記錄了它們在投票前一週的樣子，不代表它們什麼時候出現。</p>
+      <p class="note">灰色漸層代表看板設置期間：起點依各參選人登記競選辦事處的日期而定。紅字是今天。</p>
+    </div>
+    <div class="tl" id="tl" aria-label="法定競選活動期間時間軸"></div>
+  </div>
+</section>
+
+<section class="band dark" id="walk">
+  <div class="wrap">
+    <div class="prose" style="margin-bottom:28px">
+      <div class="kicker"><b>3</b>街頭</div>
+      <h2>看板住在哪裡</h2>
+      <p class="lede" style="color:#bbb">同一張臉，掛在不同的地方，就成了不同的媒介。以下依看板的「載體」分成六類，從最高的屋頂一路看到最低的盆栽。</p>
+    </div>
+    <div class="scrolly">
+      <div class="fig"><div class="photo" id="sPhoto"><img id="sImg" alt=""><div class="frames" id="sFrames"></div><div class="chip" id="sChip"></div></div></div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band fit" id="anatomy">
+  <div class="wrap fitgrid">
+    <div>
+      <div class="kicker"><b>4</b>規則</div>
+      <h2>動手拆一張看板：什麼叫「三點不露」？</h2>
+      <p>台北《競選廣告物管理自治條例》第 3 條列出五個要素：姓名、圖像、號次、競選項目、競選標語。出現<strong>三項以上</strong>才算「競選廣告物」，只能在競選期間、合法位置設置，違規可罰 1～5 萬元；兩項以下就回到一般廣告規範，俗稱「三點不露」。</p>
+      <p class="note">點照片上的虛線框或下面的按鈕，用膠帶貼住要素。</p>
+      <div class="chips" id="anaChips" role="group" aria-label="五個要素"></div>
+      <div class="verdict" id="verdict"></div>
+      <p class="note" id="verdictNote"></p>
+      <button class="btn" id="anaReset">撕掉所有膠帶</button>
+    </div>
+    <div class="photo" id="anaPhoto"><img src="img/p-wang.jpg" alt="一面寫著選情告急的議員參選人大型看板，掛在一間店面上方的鐵架上"></div>
+  </div>
+</section>
+
+
+<section class="band" id="layers">
+  <div class="wrap">
+    <div class="prose">
+      <div class="kicker"><b>5</b>層級</div>
+      <h2>三種層級，三種尺度</h2>
+      <p>九合一在台北的街頭主要是三層：市長、市議員、里長。選區越小，看板通常越小、掛得越低，也越靠近家門口。</p>
+    </div>
+    <div class="lv">
+      <article><div class="photo"><img src="img/p-wires.jpg" alt="一條紅色帆布上，議員參選人與市長參選人並列，共用一句口號"></div>
+        <h3>市長：搭著議員一起出現</h3><p>全市一個選區，看板最常見的形式之一，是和同黨的議員參選人放在同一條帆布上、共用一句口號。這種「母雞帶小雞」的做法各陣營都會用。</p>
+        <p class="note">本次素材只剛好拍到一位市長參選人的看板，不代表各陣營的看板數量；台北市長共有 6 位參選人。</p></article>
+      <article><div class="photo"><img src="img/p-rooftop.jpg" alt="屋頂垂下兩幅議員參選人大型帆布"></div>
+        <h3>市議員：外牆、屋頂、車體</h3><p>一個選區涵蓋兩個行政區，要在大範圍裡被看見，所以看板多半又大又高：整面外牆的直幅、屋頂垂下的帆布，或是印在公車上、跟著路線移動。</p></article>
+      <article><div class="photo"><img src="img/p-pillar.jpg" alt="騎樓柱子上貼著里長參選人的政見海報"></div>
+        <h3>里長：一根柱子、一條騎樓</h3><p>選區只有一個里，看板就縮到柱子上的海報、騎樓下的布條，高度剛好和行人視線齊平。海報上常常直接列出政見與聯絡方式，因為選民就是街坊。</p></article>
+    </div>
+  </div>
+</section>
+
+
+<section class="band dark fit" id="after">
+  <div class="wrap fitgrid">
+    <div>
+      <div class="kicker"><b>6</b>之後</div>
+      <h2>投票後七天，沒拆的話誰來拆？</h2>
+      <p>《公職人員選舉罷免法》第 52 條要求參選人在投票日後七日內自行清除競選廣告物；沒清的，台北依看板種類交給不同單位處理。不過建管單位坦言人力有限，多半靠民眾檢舉才會出動。</p>
+      <div class="kinds" id="kinds" role="group" aria-label="看板種類"></div>
+      <div class="msg" id="whoMsg" aria-live="polite"></div>
+      <p class="note">類型依照片外觀判斷，實際以主管機關認定為準。</p>
+    </div>
+    <div class="photo" id="whoPhoto"><img id="whoImg" src="img/p-xinglong.jpg" alt=""></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap prose">
+    <div class="kicker"><b>7</b>結語</div>
+    <h2>拍下來，是因為它們很快就不見了</h2>
+    <p>競選看板是台灣選舉最古老、也最頑固的媒介。它不能點擊、不能分享，卻天天被機車騎士、公車乘客、半夜回家的學生看見。它也是最誠實的城市地圖：哪裡租得到牆、哪條路人多、哪個里正在激烈競爭，全寫在帆布上。</p>
+    <p>這些看板並不便宜：一位候選人受訪時估算，一面看板每月約 3 萬元，光是一面牆的租金就要 2 到 5 萬元。11 月 28 日之後，這些臉會一張張被拆下來。這份報導不評論任何候選人，只想在它們消失之前，把這座城市「長滿臉」的十天留下來。</p>
+    <h3 style="margin-top:2em">資料來源</h3>
+    <ol class="src">
+      <li>中央社，〈九合一選舉登記截止 6人參選台北市長〉，2026/9/4。</li>
+      <li>三立新聞網，〈議員亮點秀／…苗博雅力拚三連霸〉（大安文山 18 搶 13），2026/11/17。</li>
+      <li>天下雜誌，〈2026九合一選舉11/28登場…總整理〉（全國登記人數、名額、選舉人數）。</li>
+      <li>TVBS 新聞網，〈2026九合一選舉候選人名單出爐〉（投票時間），2026/9/5。</li>
+      <li>《公職人員選舉罷免法》第 40、52 條（全國法規資料庫／臺北市法規查詢系統）。</li>
+      <li>《臺北市競選廣告物管理自治條例》第 2、3 條；臺北市政府統一裁罰基準；臺北市違規競選廣告物查報拆除分工表。</li>
+      <li>報導者，〈台北市新條例上路，競選看板只能「3點不露」〉，2023。</li>
+    </ol>
+    <p class="note">所有數字查證至 2026 年 11 月 24 日。照片與影片：作者拍攝於 2026/11/18–11/23，地點包括台北市大安、文山、信義、中正等區；拍攝時間僅為素材紀錄，與看板設置時間無關。</p>
+  </div>
+</section>
+
+<footer id="ai">
+  <div class="wrap">
+    <div class="kicker"><b>AI</b>使用聲明</div>
+    <h2>這份報導，哪些是人做的，哪些是 AI 做的</h2>
+    <p style="max-width:760px;color:#cfcfcf">本作品為「網頁設計與敘事」課程作業，製作過程使用生成式 AI（Anthropic Claude Opus 5.5）。依透明原則，分工如下：</p>
+    <div class="cols">
+      <div><h3>作者（人）</h3><ul>
+        <li>於 11/18–11/23 實地拍攝全部 12 張照片與 1 段影片</li>
+        <li>決定報導主題：2026 九合一的競選看板</li>
+        <li>提供素材與作業要求，審閱並對最終內容負責</li>
+      </ul></div>
+      <div><h3>AI 協助</h3><ul>
+        <li>辨識照片內容、規劃敘事結構與報導角度</li>
+        <li>搜尋並整理公開資料：選務時程、候選人數、法規條文</li>
+        <li>撰寫文字初稿、HTML／CSS／JavaScript 程式</li>
+        <li>影像處理：縮圖壓縮、影片轉為逐格畫面</li>
+              </ul></div>
+      <div><h3>使用原則</h3><ul>
+        <li>未以 AI 生成任何人物或街景影像；所有臉孔都來自作者實拍</li>
+        <li>照片只做縮圖與壓縮，沒有修改畫面內容</li>
+        <li>事實資訊附來源，未經查證的內容不寫入</li>
+        <li>不評論、不推薦任何候選人或政黨</li>
+      </ul></div>
+    </div>
+    <p class="sign">用到的互動敘事技巧：捲動逐格影片（開場）、時間軸（第 2 節）、捲動式敘事 scrollytelling 搭配紅框標示（第 3 節）、可操作的規則拆解（第 4 節）、層級對照（第 5 節）、點選查詢（第 6 節）。<br>製作日期：2026 年 11 月 24 日。</p>
+  </div>
+</footer>
+
+<script>
+{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawFrames(el,boxes){el.innerHTML=boxes.map(b=>`<i style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%"></i>`).join('')}
+
+/* 進度條 */
+const bar=$('#bar');
+/* 倒數 */
+const now=new Date(),open=new Date('2026-11-28T08:00:00+08:00'),close=new Date('2026-11-28T16:00:00+08:00');
+const tpe=d=>new Date(d.toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+const dayDiff=Math.round((new Date(2026,10,28)-new Date(tpe(now).getFullYear(),tpe(now).getMonth(),tpe(now).getDate()))/864e5);
+if(now<open){$('#cdNum').textContent='D-'+dayDiff}else if(now<close){$('#cdTop').textContent='今天';$('#cdNum').textContent='投票';}else{$('#cdTop').textContent='已於';$('#cdNum').textContent='投票';}
+
+/* hero 逐格影片 */
+const N=48,frames=[],cv=$('#cv'),ctx=cv.getContext('2d'),hero=$('#hero');let cur=-1;
+for(let i=1;i<=N;i++){const im=new Image();im.src='v/f'+String(i).padStart(3,'0')+'.jpg';im.onload=()=>{if(i===1||cur===i-1)draw(i-1,true)};frames.push(im)}
+function size(){const r=devicePixelRatio>1?1.5:1;cv.width=cv.clientWidth*r;cv.height=cv.clientHeight*r;draw(Math.max(cur,0),true)}
+function draw(i,force){if(i===cur&&!force)return;const im=frames[i];if(!im||!im.complete||!im.naturalWidth)return;cur=i;const W=cv.width,H=cv.height,s=Math.max(W/im.naturalWidth,H/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s;ctx.drawImage(im,(W-w)/2,(H-h)/2,w,h)}
+const caps=$$('.cap');
+function onScroll(){
+  const st=scrollY,dh=document.documentElement.scrollHeight-innerHeight;bar.style.width=(st/dh*100)+'%';
+  const r=hero.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(r.height-innerHeight)));
+  if(r.bottom>0){draw(reduce?Math.floor(N/2):Math.min(N-1,Math.round(p*(N-1))));caps.forEach(c=>c.classList.toggle('on',p>=+c.dataset.a&&p<+c.dataset.b))}
+}
+addEventListener('scroll',()=>requestAnimationFrame(onScroll),{passive:true});
+const ro=new ResizeObserver(size);ro.observe(cv);onScroll();
+
+/* 數字 */
+const numIO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;numIO.unobserve(e.target);const el=e.target,to=+el.dataset.to,c=el.dataset.comma,t0=performance.now();const f=t=>{const k=reduce?1:Math.min(1,(t-t0)/1200),v=Math.round(to*(1-Math.pow(1-k,3)));el.textContent=c?v.toLocaleString('en-US'):v;if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}),{threshold:.6});
+$$('[data-to]').forEach(el=>numIO.observe(el));
+
+/* 照片資料：依載體分類 */
+const S=[
+ {img:'p-rooftop',f:[[15,15,62,62]],c:'屋頂',h:'從屋頂垂下的雙聯幅',p:'中正・萬華選區，同一位參選人的兩幅帆布從屋頂一路垂到二樓。看板越高，越要靠一個大號碼，讓路人在幾秒內記住。'},
+ {img:'p-wang',f:[[24,27,63,41]],c:'建築外牆',h:'鐵架上的「選情告急」',p:'大學口一間店面樓上，議員看板固定在鐵架上。畫面中最大的字不是名字，而是「選情告急、拒絕抹黑、靠您搶救」——把選民從旁觀者變成「救援者」，是看板上常見的情緒寫法。'},
+ {img:'p-wall',f:[[14.5,16,69,58]],c:'建築外牆',h:'一棟樓，五條直幅',p:'信義區一棟五樓公寓的正面，被五條直式帆布蓋住：四條是市議員參選人，第五條是建案廣告。直幅、大字、一組號碼、一張人像——競選看板和房地產廣告租的是同一面牆，也說著同一種視覺語言。'},
+ {img:'p-pawn',f:[[1,40,98,44]],c:'建築外牆',h:'「#熱血里長 前進議會」',p:'這位議員參選人在帆布上直接寫出自己的經歷：從里長轉戰議會。把 hashtag 印上帆布，是這次拍到的看板中少見的寫法。'},
+ {img:'p-bus',f:[[27,36,40,15]],c:'公車車體',h:'會移動的看板',p:'公車車身印著議員參選人與號碼。車體廣告在台北歸交通局管，也是少數會跟著路線跨出選區的看板。'},
+ {img:'p-pillar',f:[[36.5,15,26,56]],c:'騎樓與柱子',h:'柱子上的政見',p:'大安區一位里長參選人把政見印成整張海報，貼在路口的柱子上：職業、勾選清單、QR code 都有。里長選戰的戰場，常常就是一根柱子、一個路口。'},
+ {img:'p-arcade',f:[[30.5,30,22,66],[47,20,33.5,12]],c:'騎樓與柱子',h:'同一條騎樓，1 號與 2 號',p:'信義區興隆里，1 號里長參選人的橫幅掛在騎樓頂，2 號的旗幟就插在幾步之外。里長選舉的對手，常常就在同一條街上。'},
+ {img:'p-bottles',f:[[13,19,77,52]],c:'矮牆與欄杆',h:'貼著地面的布條',p:'8 號議員參選人的布條拉在路邊矮牆上，高度就在行人和機車騎士的視線範圍內。它沒有外牆看板的氣勢，但每個經過的人都會從它面前走過。'},
+ {img:'p-parking',f:[[13,39.5,30.5,9],[72,40,21,11]],c:'矮牆與欄杆',h:'停車格旁的欄杆',p:'停車場邊的一排鐵欄杆，同時綁著議員與里長參選人的布條，1 號與 2 號只隔著兩個電箱。欄杆是城市裡最便宜、也最搶手的看板位置之一。'},
+ {img:'p-plant',f:[[43.5,7,13.5,74]],c:'旗桿與盆栽',h:'盆栽裡的旗子',p:'一面議員直旗插在店家門口的盆栽之間，葉子幾乎蓋住半張臉。旗幟是最小、最機動的看板，哪裡有空隙就插到哪裡。'}
+];
+
+/* 時間軸 */
+{
+const tl=$('#tl'),days=Array.from({length:16},(_,i)=>13+i);
+const td=tpe(now),today=(td.getMonth()===10&&td.getFullYear()===2026)?td.getDate():0;
+let h='<div></div>'+days.map(d=>`<div class="day${d===today?' today':''}">${d}</div>`).join('');
+h+=`<div class="lab">看板</div><div class="seg fade" style="grid-column:2/18">可設置到投票日</div>`;
+const rows=[['市長',13,27,'15 天'],['市議員',18,27,'10 天'],['里長',23,27,'5 天']];
+rows.forEach(r=>{h+=`<div class="lab">${r[0]}</div><div class="seg" style="grid-column:${r[1]-13+2}/${r[2]-13+3}">${r[3]}</div><div style="grid-column:${r[2]-13+3}/-1"></div>`});
+h+=`<div class="lab">投票</div><div class="seg red" style="grid-column:17/18">投票</div>`;
+tl.innerHTML=h;
+}
+
+/* scrollytelling */
+const steps=$('#steps'),sImg=$('#sImg'),sChip=$('#sChip');
+steps.innerHTML=S.map((s,i)=>`<div class="step" data-i="${i}"><div><time>${s.c}</time><h3>${s.h}</h3><p>${s.p}</p></div></div>`).join('');
+S.forEach(s=>{const im=new Image();im.src='img/'+s.img+'.jpg'});
+function setStep(i){const s=S[i];if(!sImg.src.endsWith(s.img+'.jpg')){sImg.style.opacity=0;setTimeout(()=>{sImg.src='img/'+s.img+'.jpg';sImg.alt=s.h;sImg.style.opacity=1},reduce?0:200)}
+ drawFrames($('#sFrames'),s.f);sChip.textContent=s.c;$$('.step').forEach(el=>el.classList.toggle('on',+el.dataset.i===i))}
+const stIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)setStep(+e.target.dataset.i)}),{rootMargin:'-45% 0px -45% 0px'});
+$$('.step').forEach(el=>stIO.observe(el));setStep(0);
+
+/* 拆解看板 */
+const A=[['slogan','競選標語',25,28,46,19],['item','競選項目',39.5,48.5,22,4.5],['no','號次',27,49,12,17],['name','姓名',39.5,53.5,24.5,12],['face','圖像',66,29,21,38]];
+const ap=$('#anaPhoto'),ac=$('#anaChips');
+ap.insertAdjacentHTML('beforeend',A.map(a=>`<button class="hot" data-k="${a[0]}" aria-pressed="false" aria-label="用膠帶貼住：${a[1]}" style="left:${a[2]}%;top:${a[3]}%;width:${a[4]}%;height:${a[5]}%"><span class="tag">${a[1]}</span></button>`).join(''));
+ac.innerHTML=A.map(a=>`<button class="btn on" data-k="${a[0]}">${a[1]}</button>`).join('');
+function renderAna(){const taped=new Set($$('#anaPhoto .hot.taped').map(b=>b.dataset.k)),n=5-taped.size;
+ $$('#anaChips .btn').forEach(b=>b.classList.toggle('on',!taped.has(b.dataset.k)));
+ const v=$('#verdict');v.className='verdict'+(n>=3?' legal':'');
+ v.textContent=n>=3?`露出 ${n}／5 項：仍是「競選廣告物」`:`只剩 ${n}／5 項：「三點不露」，不算競選廣告物`;
+ $('#verdictNote').textContent=n>=3?'只能從競選辦事處登記隔天掛到投票日，且要設在合法位置。':'回到一般廣告規範。有些參選人平常只放「照片＋名字＋標語」，就是這個原因——但路人多半還是認得出來。'}
+function tog(k){const b=$(`#anaPhoto .hot[data-k="${k}"]`);b.classList.toggle('taped');b.setAttribute('aria-pressed',b.classList.contains('taped'));renderAna()}
+ap.addEventListener('click',e=>{const b=e.target.closest('.hot');if(b)tog(b.dataset.k)});
+ac.addEventListener('click',e=>{const b=e.target.closest('.btn');if(b)tog(b.dataset.k)});
+$('#anaReset').addEventListener('click',()=>{$$('#anaPhoto .hot').forEach(b=>{b.classList.remove('taped');b.setAttribute('aria-pressed','false')});renderAna()});
+renderAna();
+
+/* 誰來拆 */
+const K=[
+ {n:'布條',img:'p-xinglong',f:[[0,38,22,11.5],[23.5,35,26,15.8],[64.5,45.8,14.3,12],[67.5,58,25,10.5]],t:'懸掛布條廣告',o:'臺北市政府環境保護局',d:'掛在陽台、遮雨棚、欄杆上的布條，依廢棄物清理相關規定處理。'},
+ {n:'旗幟',img:'p-arcade',f:[[30.5,30,22,66]],t:'插設旗幟廣告',o:'臺北市政府環境保護局',d:'插在路邊或騎樓的直旗，和布條一樣歸環保局處理。'},
+ {n:'張貼海報',img:'p-pillar',f:[[36.5,15,26,56]],t:'張貼廣告',o:'環保局（上緣離地不到 3 公尺）或建管處（3 公尺以上）',d:'貼在柱子、牆面上的海報，依張貼高度分給兩個單位。'},
+ {n:'大型看板',img:'p-wang',f:[[24,27,63,41]],t:'招牌／樹立廣告',o:'臺北市建築管理工程處',d:'固定在建築外牆、屋頂或鐵架上的看板。需要大型機具拆除的，會先通知限期拆除，逾期強制拆除。'},
+ {n:'公車車體',img:'p-bus',f:[[27,36,40,15]],t:'車輛廣告',o:'臺北市政府交通局',d:'印在公車等車體上的廣告。'}];
+$('#kinds').innerHTML=K.map((x,i)=>`<button class="kind" data-i="${i}" aria-pressed="false"><img src="img/${x.img}.jpg" alt="">${x.n}</button>`).join('');
+$('#whoPhoto').insertAdjacentHTML('beforeend','<div class="frames" id="wFrames"></div>');
+function who(i){const x=K[i];$$('#kinds .kind').forEach(b=>{const on=+b.dataset.i===i;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ const im=$('#whoImg');im.src='img/'+x.img+'.jpg';im.alt=x.n+'的例子';drawFrames($('#wFrames'),x.f);
+ const m=$('#whoMsg');m.textContent='';const b1=document.createElement('b');b1.textContent=x.t;const b2=document.createElement('b');b2.textContent=x.o;
+ m.append('類型：',b1,document.createElement('br'),'七天後仍未清除，由 ',b2,' 處理。',document.createElement('br'),x.d)}
+$('#kinds').addEventListener('click',e=>{const b=e.target.closest('.kind');if(b)who(+b.dataset.i)});
+who(0);
+}
+</script>
+</body>
+</html>
